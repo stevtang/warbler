@@ -24,14 +24,14 @@ class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[Length(min=6)])
 
-class CSRFOnlyForm(FlaskForm):
-    """Form for CSRF protection"""
-
 class UserEditForm(FlaskForm):
-    """Form for adding users."""
+    """Form for editing user"""
 
     username = StringField('Username')
     email = StringField('E-mail', validators=[Email()])
     password = PasswordField('Password', validators=[Length(min=6)])
     image_url = StringField('(Optional) Image URL')
     header_image_url = StringField('(Optional) Header Image URL')
+
+class CSRFOnlyForm(FlaskForm):
+    """Form for CSRF protection"""

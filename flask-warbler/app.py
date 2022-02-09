@@ -10,7 +10,6 @@ from models import db, connect_db, User, Message
 
 CURR_USER_KEY = "curr_user"
 
-
 load_dotenv()
 
 app = Flask(__name__)
@@ -32,7 +31,8 @@ connect_db(app)
 # User signup/login/logout
 @app.before_request
 def add_CSRF_form():
-    """"""
+    """Add CSRF protection for any route"""
+
     g.csrf_protection = CSRFOnlyForm()
 
 
@@ -119,9 +119,6 @@ def login():
 @app.post('/logout')
 def logout():
     """Handle logout of user."""
-
-    # IMPLEMENT THIS AND FIX BUG
-    # DO NOT CHANGE METHOD ON ROUTE
 
     form = CSRFOnlyForm()
 
