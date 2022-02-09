@@ -5,10 +5,11 @@ from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from dotenv import load_dotenv
-from forms import UserAddForm, LoginForm, MessageForm
+from forms import UserAddForm, LoginForm, MessageForm, CSRFOnlyForm
 from models import db, connect_db, User, Message
 
 CURR_USER_KEY = "curr_user"
+
 
 load_dotenv()
 
@@ -29,7 +30,10 @@ connect_db(app)
 
 ##############################################################################
 # User signup/login/logout
-
+@app.before_request
+def add_CSRF_form():
+    """"""
+    g.csrf_protection = CSRFOnlyForm()
 
 @app.before_request
 def add_user_to_g():
@@ -118,6 +122,14 @@ def logout():
     # IMPLEMENT THIS AND FIX BUG
     # DO NOT CHANGE METHOD ON ROUTE
 
+    form = CSRFOnlyForm()
+
+    if form.validate_on_submit():
+        do_logout()
+        flash("You've been successfully logged out.")
+        return redirect("/login")
+    else:
+        return redirect("/")
 
 ##############################################################################
 # General user routes:
