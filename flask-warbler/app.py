@@ -120,9 +120,12 @@ def login():
 def logout():
     """Handle logout of user."""
 
-    form = CSRFOnlyForm()
+    # form = CSRFOnlyForm()
+    # form = g.csrf_protection
+    # CODE REVIEW
+    # dont want new instance of form 
 
-    if form.validate_on_submit():
+    if g.csrf_protection.validate_on_submit():
         do_logout()
         flash("You've been successfully logged out.")
         return redirect("/login")
@@ -232,7 +235,7 @@ def profile():
                                      or User.header_image_url.default.arg)
             user.email = form.email.data or user.email
             user.image_url = form.image_url.data or User.image_url.default.arg
-
+            user.bio = form.bio.data
             db.session.commit()
 
             return redirect(f'/users/{user.id}')

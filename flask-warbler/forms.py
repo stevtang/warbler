@@ -32,6 +32,7 @@ class UserEditForm(FlaskForm):
     password = PasswordField('Password', validators=[Length(min=6)])
     image_url = StringField('(Optional) Image URL')
     header_image_url = StringField('(Optional) Header Image URL')
+    bio = TextAreaField('(Optional) About You')
 
 class CSRFOnlyForm(FlaskForm):
     """Form for CSRF protection"""
