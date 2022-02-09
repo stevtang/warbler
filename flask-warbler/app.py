@@ -314,7 +314,7 @@ def messages_destroy(message_id):
 # Homepage and error pages
 
 
-@ app.get('/')
+@app.get('/')
 def homepage():
     """Show homepage:
 
@@ -323,8 +323,11 @@ def homepage():
     """
 
     if g.user:
+        curr_followed = [followed_user.id for followed_user in g.user.following]
+
         messages = (Message
                     .query
+                    .filter(Message.user_id.in_(curr_followed))
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
