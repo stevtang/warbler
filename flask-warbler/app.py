@@ -5,7 +5,7 @@ from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from dotenv import load_dotenv
-from forms import UserAddForm, LoginForm, MessageForm, CSRFOnlyForm
+from forms import UserAddForm, LoginForm, MessageForm, CSRFOnlyForm, UserEditForm
 from models import db, connect_db, User, Message
 
 CURR_USER_KEY = "curr_user"
@@ -34,6 +34,7 @@ connect_db(app)
 def add_CSRF_form():
     """"""
     g.csrf_protection = CSRFOnlyForm()
+
 
 @app.before_request
 def add_user_to_g():
@@ -100,7 +101,7 @@ def login():
     """Handle user login."""
 
     form = LoginForm()
-    
+
     if form.validate_on_submit():
         user = User.authenticate(form.username.data,
                                  form.password.data)
@@ -133,6 +134,7 @@ def logout():
 
 ##############################################################################
 # General user routes:
+
 
 @app.get('/users')
 def list_users():
@@ -218,10 +220,32 @@ def stop_following(follow_id):
 def profile():
     """Update profile for current user."""
 
-    # IMPLEMENT THIS
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    form = UserEditForm()
+
+    if form.validate_on_submit():
+        user = User.authenticate(g.user.username,
+                                 form.password.data)
+        if user:
+            user.username = form.username.data
+            user.header_image_url = (form.header_image_url.data
+                                     or User.header_image_url.default.arg)
+            user.email = form.email.data or user.email
+            user.image_url = form.image_url.data or User.image_url.default.arg
+
+            db.session.commit()
+
+            return redirect(f'/users/{user.id}')
+
+        flash("Invalid credential.", 'danger')
+
+    return render_template('users/edit.html', form=form)
 
 
-@app.post('/users/delete')
+@ app.post('/users/delete')
 def delete_user():
     """Delete user."""
 
@@ -240,7 +264,7 @@ def delete_user():
 ##############################################################################
 # Messages routes:
 
-@app.route('/messages/new', methods=["GET", "POST"])
+@ app.route('/messages/new', methods=["GET", "POST"])
 def messages_add():
     """Add a message:
 
@@ -263,7 +287,7 @@ def messages_add():
     return render_template('messages/new.html', form=form)
 
 
-@app.get('/messages/<int:message_id>')
+@ app.get('/messages/<int:message_id>')
 def messages_show(message_id):
     """Show a message."""
 
@@ -271,7 +295,7 @@ def messages_show(message_id):
     return render_template('messages/show.html', message=msg)
 
 
-@app.post('/messages/<int:message_id>/delete')
+@ app.post('/messages/<int:message_id>/delete')
 def messages_destroy(message_id):
     """Delete a message."""
 
@@ -290,7 +314,7 @@ def messages_destroy(message_id):
 # Homepage and error pages
 
 
-@app.get('/')
+@ app.get('/')
 def homepage():
     """Show homepage:
 
@@ -318,7 +342,7 @@ def homepage():
 #
 # https://stackoverflow.com/questions/34066804/disabling-caching-in-flask
 
-@app.after_request
+@ app.after_request
 def add_header(response):
     """Add non-caching headers on every request."""
 
