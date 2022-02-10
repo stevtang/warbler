@@ -30,10 +30,10 @@ connect_db(app)
 ##############################################################################
 # User signup/login/logout
 @app.before_request
-def add_CSRF_form():
+def add_CSRF_form_to_g():
     """Add CSRF protection for any route"""
 
-    g.csrf_protection = CSRFOnlyForm()
+    g.csrf_protection_form = CSRFOnlyForm()
 
 
 @app.before_request
@@ -125,11 +125,12 @@ def logout():
     # CODE REVIEW
     # dont want new instance of form 
 
-    if g.csrf_protection.validate_on_submit():
+    if g.csrf_protection_form.validate_on_submit():
         do_logout()
         flash("You've been successfully logged out.")
         return redirect("/login")
     else:
+        # raise unauth error or flash 
         return redirect("/")
 
 ##############################################################################
@@ -217,14 +218,14 @@ def stop_following(follow_id):
 
 
 @app.route('/users/profile', methods=["GET", "POST"])
-def profile():
+def edit_profile():
     """Update profile for current user."""
 
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
-    form = UserEditForm()
+    form = UserEditForm(obj=g.user)
 
     if form.validate_on_submit():
         user = User.authenticate(g.user.username,
@@ -323,11 +324,12 @@ def homepage():
     """
 
     if g.user:
-        curr_followed = [followed_user.id for followed_user in g.user.following]
-
+        
+        curr_following_ids = [f.id for f in g.user.following]
+        curr_following_ids.append(g.user.id)
         messages = (Message
                     .query
-                    .filter(Message.user_id.in_(curr_followed))
+                    .filter(Message.user_id.in_(curr_following_ids))
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
