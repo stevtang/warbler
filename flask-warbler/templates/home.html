@@ -55,13 +55,14 @@
             <div class="message-area">
               <a href="/users/{{ msg.user.id }}">@{{ msg.user.username }}</a>
               <!-- Working on likes implementaion -->
-            <form action="/messages/{{ msg.id }}/likes" method="POST">
-              <button class="btn btn-primary btn-sm"><i class="bi bi-star"></i></button>
-            </form>
+              <form action="/messages/{{ msg.id }}/likes" method="POST">
+                <button class="btn btn-primary btn-sm"><i class="bi bi-star"></i></button>
+              </form>
               <span class="text-muted">{{ msg.timestamp.strftime('%d %B %Y') }}</span>
               <p>{{ msg.text }}</p>
             </div>
           </li>
+          
         {% endfor %}
       </ul>
     </div>
