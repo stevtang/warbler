@@ -150,26 +150,6 @@ class User(db.Model):
         return False
 
 
-class LikedMessages(db.Model):
-    """Connection of a message <-> liking_user."""
-
-    __tablename__ = "message_likes"
-
-    message_id = db.Column(
-        db.Integer,
-        db.ForeignKey('messages.id', ondelete='CASCADE'),
-        primary_key=True,
-        nullable=False,
-    )
-
-    liked_by_user_id = db.Column(
-        db.Integer,
-        db.ForeignKey('users.id', ondelete="CASCADE"),
-        primary_key=True,
-        nullable=False,
-    )
-
-
 class Message(db.Model):
     """An individual message ("warble")."""
 
@@ -199,12 +179,6 @@ class Message(db.Model):
 
     user = db.relationship('User')
 
-    likes = db.relationship(
-        'User',
-        secondary="message_likes",
-        # Don't appear to need backref
-        )
-
 
 def connect_db(app):
     """Connect this database to provided Flask app.
@@ -214,3 +188,24 @@ def connect_db(app):
 
     db.app = app
     db.init_app(app)
+
+
+class LikedMessages(db.Model):
+    """Connection of a message <-> liking_user."""
+
+    __tablename__ = 'message_likes'
+
+    message_id = db.Column(
+        db.Integer,
+        db.ForeignKey('messages.id', ondelete='CASCADE'),
+        primary_key=True,
+        nullable=False,
+    )
+
+    liked_by_user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('users.id', ondelete="CASCADE"),
+        primary_key=True,
+        nullable=False,
+    )
+

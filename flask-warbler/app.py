@@ -14,6 +14,7 @@ load_dotenv()
 
 app = Flask(__name__)
 
+
 # Get DB_URI from environ variable (useful for production/testing) or,
 # if not set there, use development local db.
 app.config['SQLALCHEMY_DATABASE_URI'] = (
@@ -319,7 +320,7 @@ def toggle_likes(msg_id):
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
-    message = Message.query.one_or_none(msg_id)
+    message = Message.query.get(msg_id)
 
     curr_liked_message_ids = [m.id for m in g.user.liked_messages]
 
@@ -331,7 +332,7 @@ def toggle_likes(msg_id):
     else:
         g.user.liked_messages.append(message)
 
-    db.commit()
+    db.session.commit()
     return redirect(f'/users/{g.user.id}/liked_messages')
 
 
