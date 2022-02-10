@@ -26,7 +26,7 @@ app.config['SECRET_KEY'] = (os.environ.get('SECRET_KEY'))
 toolbar = DebugToolbarExtension(app)
 
 connect_db(app)
-
+db.create_all()
 
 ##############################################################################
 # User signup/login/logout
@@ -334,6 +334,15 @@ def toggle_likes(msg_id):
 
     db.session.commit()
     return redirect(f'/users/{g.user.id}/liked_messages')
+
+@app.get('/users/<int:user_id>/liked_messages')
+def show_liked_messages(user_id):
+    """Display all messages liked by user"""
+
+    user = User.query.get_or_404(user_id)
+    return render_template("users/liked_messages.html", user=user)
+
+
 
 
 ##############################################################################
