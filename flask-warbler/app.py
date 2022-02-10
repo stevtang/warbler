@@ -311,6 +311,17 @@ def messages_destroy(message_id):
     return redirect(f"/users/{g.user.id}")
 
 
+@app.post('/messages/<int:msg_id>/likes')
+def toggle_likes(msg_id):
+    """Toggle like/unlike"""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    
+
+
 ##############################################################################
 # Homepage and error pages
 
