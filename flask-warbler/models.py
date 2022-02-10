@@ -91,7 +91,7 @@ class User(db.Model):
     liked_messages = db.relationship(
         'Message',
         secondary="message_likes",
-        )
+    )
 
     def __repr__(self):
         return f"<User #{self.id}: {self.username}, {self.email}>"
@@ -208,4 +208,3 @@ class LikedMessages(db.Model):
         primary_key=True,
         nullable=False,
     )
-

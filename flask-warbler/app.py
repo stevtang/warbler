@@ -30,6 +30,8 @@ db.create_all()
 
 ##############################################################################
 # User signup/login/logout
+
+
 @app.before_request
 def add_CSRF_form_to_g():
     """Add CSRF protection for any route"""
@@ -124,14 +126,14 @@ def logout():
     # form = CSRFOnlyForm()
     # form = g.csrf_protection
     # CODE REVIEW
-    # dont want new instance of form 
+    # dont want new instance of form
 
     if g.csrf_protection_form.validate_on_submit():
         do_logout()
         flash("You've been successfully logged out.")
         return redirect("/login")
     else:
-        # raise unauth error or flash 
+        # raise unauth error or flash
         return redirect("/")
 
 ##############################################################################
@@ -320,14 +322,18 @@ def toggle_likes(msg_id):
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
+    # CR opportunity to refactor
+
     message = Message.query.get(msg_id)
 
-    curr_liked_message_ids = [m.id for m in g.user.liked_messages]
+    # curr_liked_message_ids = [m.id for m in g.user.liked_messages]
 
     if message.user.id == g.user.id:
         flash("Can't like your own messages!")
         return redirect("/")
-    if message.id in curr_liked_message_ids:
+
+    # if message.id in curr_liked_message_ids:
+    if message in g.user.liked_messages:
         g.user.liked_messages.remove(message)
     else:
         g.user.liked_messages.append(message)
@@ -335,14 +341,13 @@ def toggle_likes(msg_id):
     db.session.commit()
     return redirect(f'/users/{g.user.id}/liked_messages')
 
+
 @app.get('/users/<int:user_id>/liked_messages')
 def show_liked_messages(user_id):
     """Display all messages liked by user"""
 
     user = User.query.get_or_404(user_id)
     return render_template("users/liked_messages.html", user=user)
-
-
 
 
 ##############################################################################
@@ -358,7 +363,7 @@ def homepage():
     """
 
     if g.user:
-        
+
         curr_following_ids = [f.id for f in g.user.following]
         curr_following_ids.append(g.user.id)
         messages = (Message
