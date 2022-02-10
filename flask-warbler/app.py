@@ -319,7 +319,20 @@ def toggle_likes(msg_id):
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
-    
+    message = Message.query.one_or_none(msg_id)
+
+    curr_liked_message_ids = [m.id for m in g.user.liked_messages]
+
+    if message.user.id == g.user.id:
+        flash("Can't like your own messages!")
+        return redirect("/")
+    if message.id in curr_liked_message_ids:
+        g.user.liked_messages.remove(message)
+    else:
+        g.user.liked_messages.append(message)
+
+    db.commit()
+    return redirect(f'/users/{g.user.id}/liked_messages')
 
 
 ##############################################################################
