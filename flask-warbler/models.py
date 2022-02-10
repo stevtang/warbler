@@ -94,13 +94,15 @@ class User(db.Model):
     def is_followed_by(self, other_user):
         """Is this user followed by `other_user`?"""
 
-        found_user_list = [user for user in self.followers if user == other_user]
+        found_user_list = [
+            user for user in self.followers if user == other_user]
         return len(found_user_list) == 1
 
     def is_following(self, other_user):
         """Is this user following `other_use`?"""
 
-        found_user_list = [user for user in self.following if user == other_user]
+        found_user_list = [
+            user for user in self.following if user == other_user]
         return len(found_user_list) == 1
 
     @classmethod
@@ -143,6 +145,26 @@ class User(db.Model):
         return False
 
 
+class LikedMessages(db.Model):
+    """Connection of a message <-> liking_user."""
+
+    __tablename__ = "message_likes"
+
+    message_id = db.Column(
+        db.Integer,
+        db.ForeignKey('messages.id', ondelete='CASCADE'),
+        primary_key=True,
+        nullable=False,
+    )
+
+    liked_by_user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('users.id', ondelete="CASCADE"),
+        primary_key=True,
+        nullable=False,
+    )
+
+
 class Message(db.Model):
     """An individual message ("warble")."""
 
@@ -171,6 +193,11 @@ class Message(db.Model):
     )
 
     user = db.relationship('User')
+
+    likes = db.relationship(
+        'User',
+        secondary="message_likes",
+        )
 
 
 def connect_db(app):
