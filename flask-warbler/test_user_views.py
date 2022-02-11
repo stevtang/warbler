@@ -1,6 +1,6 @@
 # run these tests like:
 #
-#    python -m unittest test_user_model.py
+#    python -m unittest test_user_views.py
 
 
 from app import app
@@ -8,7 +8,7 @@ from app import app
 from unittest import TestCase
 from sqlalchemy import exc
 from models import db, User, Message, Follows
-from flask import g
+from flask import g, session
 
 from flask_bcrypt import Bcrypt
 
@@ -45,7 +45,7 @@ USER2_DATA = {
     "username": "test2_username",
     "password": bcrypt.generate_password_hash("password2").decode('utf8'),
 }
-
+CURR_USER_KEY = "curr_user"
 
 class UserViewFunctionTestCase(TestCase):
 
@@ -72,8 +72,13 @@ class UserViewFunctionTestCase(TestCase):
 
     def test_show_following(self):
         """ Testing login function."""
-
-        with app.test_client() as client:
+        
+        # Ask for clarification
+        with self.client as client:
             with client.session_transaction() as sess:
-                sess[]
-            client.post
+                sess[CURR_USER_KEY] = self.user1.id
+                sess["another_user"] = self.user2.id
+            resp = client.get(f"/users/{self.user2.id}/following")
+            self.assertEqual(resp.status_code, 200)
+
+        
