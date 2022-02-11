@@ -6,7 +6,7 @@
 
 
 from app import app
-import os
+
 from unittest import TestCase
 from sqlalchemy import exc
 from models import db, User, Message, Follows
@@ -18,7 +18,7 @@ from flask_bcrypt import Bcrypt
 # before we import our app, since that will have already
 # connected to the database
 
-os.environ['DATABASE_URL'] = "postgresql:///warbler_test"
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql:///warbler_test"
 
 # Now we can import app
 
@@ -158,7 +158,6 @@ class UserModelTestCase(TestCase):
                 image_url="someimg.org/test_pic",
             )
             db.session.commit()
-        # self.assertTrue(exc.IntegrityError in context.exception)
 
     # Testing Authentication
 
