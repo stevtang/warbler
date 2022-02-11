@@ -116,19 +116,4 @@ class UserViewFunctionTestCase(TestCase):
             html = resp.get_data(as_text=True)
             self.assertIn("Access unauthorized.", html)
 
-    def test_messages_add(self):
-        """ Testing logged in User can post message """
-        u1 = User.query.get(self.user1_id)
-        with self.client as client:
-            with client.session_transaction() as sess:
-                sess[CURR_USER_KEY] = self.user1_id
-            resp = client.post(
-                    f"/messages/new",
-                    data={
-                        "text": "test text"
-                    }, follow_redirects=True)
-            html = resp.get_data(as_text=True)
-            
-            self.assertIn(f"{u1.username}", html)
-            self.assertIn("test text", html)
-            self.assertEqual(resp.status_code, 200)
+    

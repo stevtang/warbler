@@ -5,6 +5,7 @@
 #    FLASK_ENV=production python -m unittest test_message_views.py
 
 
+from app import app, CURR_USER_KEY
 import os
 from unittest import TestCase
 
@@ -19,7 +20,6 @@ os.environ['DATABASE_URL'] = "postgresql:///warbler_test"
 
 # Now we can import app
 
-from app import app, CURR_USER_KEY
 
 # Create our tables (we do this here, so we only create the tables
 # once for all tests --- in each test, we'll delete the data
@@ -50,6 +50,8 @@ class MessageViewTestCase(TestCase):
 
         db.session.commit()
 
+        self.testuser_id = self.testuser.id
+
     def test_add_message(self):
         """Can use add a message?"""
 
@@ -70,3 +72,44 @@ class MessageViewTestCase(TestCase):
 
             msg = Message.query.one()
             self.assertEqual(msg.text, "Hello")
+
+    def add_message(self):
+        u1 = User.query.get(self.testuser_id)
+        msg = Message(text="TEST TEXT FOR TESTING")
+        u1.messages.append(msg)
+        db.session.commit()
+        return msg.id
+
+    def test_messages_add(self):
+        """ Testing logged in User can post message """
+        u1 = User.query.get(self.testuser_id)
+        with self.client as client:
+            with client.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser_id
+
+            resp = client.post(f"/messages/new",
+                               data={"text": "test text"},
+                               follow_redirects=True)
+
+            html = resp.get_data(as_text=True)
+
+            self.assertIn(f"{u1.username}", html)
+            self.assertIn("test text", html)
+            self.assertEqual(resp.status_code, 200)
+
+    def test_messages_destroy(self):
+        """ Testing logged-in user deleting own messages"""
+        msg_id = self.add_message()
+
+        with self.client as client:
+            with client.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser_id
+
+            resp = client.post(f"/messages/{msg_id}/delete")
+
+            user1 = User.query.get(self.testuser_id)
+            msg = Message.query.get(msg_id)
+
+            self.assertEqual(len(user1.messages), 0)
+            self.assertEqual(msg, None)
+            self.assertEqual(resp.status_code, 302)
