@@ -318,21 +318,16 @@ def messages_destroy(message_id):
 def toggle_likes(msg_id):
     """Toggle like/unlike"""
 
-    if not g.user:
+    if not g.user or not g.csrf_protection_form.validate_on_submit():
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
-    # CR opportunity to refactor
-
     message = Message.query.get(msg_id)
-
-    # curr_liked_message_ids = [m.id for m in g.user.liked_messages]
 
     if message.user.id == g.user.id:
         flash("Can't like your own messages!")
         return redirect("/")
 
-    # if message.id in curr_liked_message_ids:
     if message in g.user.liked_messages:
         g.user.liked_messages.remove(message)
     else:
@@ -345,6 +340,10 @@ def toggle_likes(msg_id):
 @app.get('/users/<int:user_id>/liked_messages')
 def show_liked_messages(user_id):
     """Display all messages liked by user"""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
 
     user = User.query.get_or_404(user_id)
     return render_template("users/liked_messages.html", user=user)

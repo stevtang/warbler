@@ -5,6 +5,7 @@
 #    python -m unittest test_user_model.py
 
 
+from app import app
 import os
 from unittest import TestCase
 
@@ -21,7 +22,6 @@ os.environ['DATABASE_URL'] = "postgresql:///warbler_test"
 
 # Now we can import app
 
-from app import app
 
 # Create our tables (we do this here, so we only create the tables
 # once for all tests --- in each test, we'll delete the data
@@ -30,7 +30,7 @@ from app import app
 db.create_all()
 
 # added:
-# imported bcrypt 
+# imported bcrypt
 # set some test user data for two users
 
 bcrypt = Bcrypt()
@@ -46,6 +46,7 @@ USER2_DATA = {
     "username": "test2_username",
     "password": bcrypt.generate_password_hash("password2").decode('utf8'),
 }
+
 
 class UserModelTestCase(TestCase):
     """Test views for messages."""
@@ -87,19 +88,70 @@ class UserModelTestCase(TestCase):
         # User should have no messages & no followers
         self.assertEqual(len(u.messages), 0)
         self.assertEqual(len(u.followers), 0)
-        
+
     def test_is_following(self):
         """Does is_following successfully detect 
         when user1 is following user2?
         """
 
         follows = Follows(
-            user_being_followed_id=self.user1.id, 
+            user_being_followed_id=self.user1.id,
             user_following_id=self.user2.id)
 
         db.session.add(follows)
         db.session.commit()
 
-        users_following = [u.id for u in self.user1.following]
+        self.user2.is_following(self.user1)
+        self.user1.is_followed_by(self.user2)
 
-        self.assertIn(self.user2.id, users_following)
+        self.assertEqual(self.user2.is_following(self.user1), True)
+        self.assertEqual(self.user2.is_following(self.user2), False)
+        self.assertEqual(self.user1.is_following(self.user2), False)
+
+    def test_is_followed_by(self):
+        """Tests the is followed by db.relationship"""
+
+        self.user2.is_following.append(self.user1)
+        db.session.commit()
+
+        self.assertEqual(self.user1.is_followed_by(self.user2), True)
+        self.assertEqual(self.user1.is_followed_by(self.user1), False)
+        self.assertEqual(self.user2.is_followed_by(self.user1), False)
+
+    # Testing User Sign Up
+
+    def test_signup(self):
+        """ Tests if the signup method works with 
+        valid inputs and fails eith ANY invalid
+        input
+        """
+
+        user = User.signup(
+            username="test_signup",
+            email="test_",
+            password=bcrypt.generate_password_hash("password3").decode('utf8'),
+            image_url="someimg.org/test_pic",
+        )
+
+        db.session.commit()
+
+        total_users = User.query.all()
+
+        # Query all the users
+        self.assertEqual(len(total_users), 3)
+        self.assertEqual(user.username, "test_signup")
+        self.assertEqual(user.email, "test_")
+        self.assertEqual(user.image_url, "someimg.org/test_pic")
+        self.assertTrue(user.password.startswith("$2b$"))
+
+    # Testing Authentication
+    def test_valid_authentication(self):
+        user1 = User.authenticate(self.user1.username, "password1")
+        self.assertIsNotNone(user1)
+        self.assertEqual(user1.id, self.user1.id)
+
+    def test_invalid_username(self):
+        self.assertFalse(User.authenticate("badusername", "password"))
+
+    def test_wrong_password(self):
+        self.assertFalse(User.authenticate(self.user1.username, "badpassword"))
