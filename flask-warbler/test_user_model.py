@@ -8,7 +8,7 @@
 from app import app
 import os
 from unittest import TestCase
-
+from sqlalchemy import exc
 from models import db, User, Message, Follows
 
 from flask_bcrypt import Bcrypt
@@ -149,8 +149,7 @@ class UserModelTestCase(TestCase):
         fields
         """
 
-        with self.assertRaises(Exception) as context:
-
+        with self.assertRaises(exc.IntegrityError) as context:
             fail_user = User.signup(
                 # username not unique
                 username="test1_username",
@@ -158,8 +157,8 @@ class UserModelTestCase(TestCase):
                 password="1234567890",
                 image_url="someimg.org/test_pic",
             )
-
-        self.assertTrue(Exception in context.exception)
+            db.session.commit()
+        # self.assertTrue(exc.IntegrityError in context.exception)
 
     # Testing Authentication
 
