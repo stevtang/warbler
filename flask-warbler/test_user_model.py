@@ -111,7 +111,7 @@ class UserModelTestCase(TestCase):
     def test_is_followed_by(self):
         """Tests the is followed by db.relationship"""
 
-        self.user2.is_following.append(self.user1)
+        self.user2.following.append(self.user1)
         db.session.commit()
 
         self.assertEqual(self.user1.is_followed_by(self.user2), True)
@@ -128,7 +128,7 @@ class UserModelTestCase(TestCase):
 
         user = User.signup(
             username="test_signup",
-            email="test_",
+            email="test_@gmail.com",
             password=bcrypt.generate_password_hash("password3").decode('utf8'),
             image_url="someimg.org/test_pic",
         )
@@ -140,18 +140,36 @@ class UserModelTestCase(TestCase):
         # Query all the users
         self.assertEqual(len(total_users), 3)
         self.assertEqual(user.username, "test_signup")
-        self.assertEqual(user.email, "test_")
+        self.assertEqual(user.email, "test_@gmail.com")
         self.assertEqual(user.image_url, "someimg.org/test_pic")
         self.assertTrue(user.password.startswith("$2b$"))
 
+    def test_signup_fail(self):
+        """ Tests the signup method's uniqueness and nonnullable
+        fields
+        """
+
+        with self.assertRaises(Exception) as context:
+
+            fail_user = User.signup(
+                # username not unique
+                username="test1_username",
+                email="test3_email",
+                password="1234567890",
+                image_url="someimg.org/test_pic",
+            )
+
+        self.assertTrue(Exception in context.exception)
+
     # Testing Authentication
+
     def test_valid_authentication(self):
         user1 = User.authenticate(self.user1.username, "password1")
         self.assertIsNotNone(user1)
         self.assertEqual(user1.id, self.user1.id)
 
     def test_invalid_username(self):
-        self.assertFalse(User.authenticate("badusername", "password"))
+        self.assertFalse(User.authenticate("badusername", "password1"))
 
     def test_wrong_password(self):
         self.assertFalse(User.authenticate(self.user1.username, "badpassword"))
