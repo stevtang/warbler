@@ -47,6 +47,7 @@ USER2_DATA = {
 }
 CURR_USER_KEY = "curr_user"
 
+
 class UserViewFunctionTestCase(TestCase):
 
     def setUp(self):
@@ -63,8 +64,8 @@ class UserViewFunctionTestCase(TestCase):
         db.session.add(user2)
         db.session.commit()
 
-        self.user1 = user1
-        self.user2 = user2
+        self.user1_id = user1.id
+        self.user2_id = user2.id
 
     def tearDown(self):
         """Clean up fouled transactions."""
@@ -72,13 +73,18 @@ class UserViewFunctionTestCase(TestCase):
 
     def test_show_following(self):
         """ Testing login function."""
-        
+        # u1 = User.query.get(self.user1_id)
+        # u2 = User.query.get(self.user2_id)
         # Ask for clarification
         with self.client as client:
             with client.session_transaction() as sess:
-                sess[CURR_USER_KEY] = self.user1.id
-                sess["another_user"] = self.user2.id
-            resp = client.get(f"/users/{self.user2.id}/following")
+                sess[CURR_USER_KEY] = self.user1_id
+                # sess["another_user"] = self.user2.id
+
+            resp = client.get(f"/users/{self.user2_id}/following")
             self.assertEqual(resp.status_code, 200)
 
+    def test_invalid_show_following(self):
+        """ Testing access from user not logged in"""
         
+        with self.client as client:
